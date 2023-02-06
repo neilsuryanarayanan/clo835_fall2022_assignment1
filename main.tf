@@ -12,8 +12,9 @@ resource "aws_subnet" "public_subnet_1" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public-subnet"
+    Name = "public_subnet_1"
   }
+}
 
 resource "aws_security_group" "instance" {
   name        = "instance1-instance-sg"
@@ -66,10 +67,10 @@ resource "aws_security_group" "instance" {
 resource "aws_instance" "instance1" {
   ami           = "ami-0aa7d40eeae50c9a9"
   instance_type = "t2.micro"
-  subnet_id = data.aws_vpc.default.id
+  subnet_id = aws_subnet.public_subnet_1.id
   vpc_security_group_ids = [aws_security_group.instance.id]
   iam_instance_profile = "LabInstanceProfile"
-  key_name = "clo835"
+  key_name = "clo835assign"
   
   tags = {
     Name = "instance1"
