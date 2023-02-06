@@ -6,22 +6,31 @@ data "aws_vpc" "default" {
   default = true
 }
 
-resource "aws_subnet" "public_subnet" {
-vpc_id     = data.aws_vpc.default.id
-cidr_block = "172.31.96.0/20"
+resource "aws_subnet" "public_subnet_1" {
+  vpc_id     = data.aws_vpc.default.id
+  cidr_block = "172.31.96.0/20"
+  map_public_ip_on_launch = true
 
   tags = {
-    Name = "public-subnet-1"
+    Name = "public_subnet_1"
   }
 }
 
 resource "aws_security_group" "instance" {
   name        = "instance1-instance-sg"
   description = "Allow SSH access and http"
+  vpc_id     = data.aws_vpc.default.id
 
   ingress {
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    }
+    
+  ingress {
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     }
@@ -33,40 +42,36 @@ resource "aws_security_group" "instance" {
     cidr_blocks = ["0.0.0.0/0"]
     }
     
-   ingress {
+  ingress {
     from_port   = 8081
     to_port     = 8081
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     }
     
-   ingress {
+  ingress {
     from_port   = 8082
     to_port     = 8082
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     
   }
-}
-
-
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-2.0.*-x86_64-gp2"]
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
 resource "aws_instance" "instance1" {
-  ami           = data.aws_ami.amazon_linux.id
+  ami           = "ami-0aa7d40eeae50c9a9"
   instance_type = "t2.micro"
-  subnet_id = aws_subnet.public_subnet.id
+  subnet_id = aws_subnet.public_subnet_1.id
   vpc_security_group_ids = [aws_security_group.instance.id]
   iam_instance_profile = "LabInstanceProfile"
-
+  key_name = "clo835assign"
+  
   tags = {
     Name = "instance1"
   }
