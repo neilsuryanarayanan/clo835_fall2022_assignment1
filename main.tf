@@ -9,6 +9,7 @@ data "aws_vpc" "default" {
 resource "aws_subnet" "public_subnet" {
 vpc_id     = data.aws_vpc.default.id
 cidr_block = "172.31.96.0/20"
+map_public_ip_on_launch = true
 
   tags = {
     Name = "public-subnet-1"
@@ -22,6 +23,13 @@ resource "aws_security_group" "instance" {
   ingress {
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    }
+    
+    ingress {
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     }
@@ -56,7 +64,7 @@ data "aws_ami" "amazon_linux" {
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-2.0.*-x86_64-gp2"]
+    values = ["amzn2-ami-hvm*-x86_64-gp2"]
   }
 }
 
@@ -66,7 +74,8 @@ resource "aws_instance" "instance1" {
   subnet_id = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.instance.id]
   iam_instance_profile = "LabInstanceProfile"
-
+  key_name = "clo835"
+  
   tags = {
     Name = "instance1"
   }
